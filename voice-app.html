@@ -3,239 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>おしゃべりアシスタント</title>
+  <title>ずんだもんとおしゃべり</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
-      background: #f0f4f8;
+      background: linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 100%);
       color: #1a1a2e;
       min-height: 100vh;
       font-size: 20px;
     }
 
-    #setup-screen {
+    /* ── VOICEVOX 案内 ── */
+    #voicevox-notice {
+      background: #fff9c4;
+      border-bottom: 3px solid #f9a825;
+      padding: 12px 24px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 32px;
-      gap: 24px;
+      gap: 12px;
+      font-size: 1rem;
+      flex-wrap: wrap;
     }
-
-    #setup-screen h1 {
-      font-size: 2.4rem;
-      color: #2c3e6e;
-      text-align: center;
-    }
-
-    #setup-screen p {
-      font-size: 1.2rem;
-      color: #555;
-      text-align: center;
-      max-width: 500px;
-    }
-
-    #api-key-input {
-      width: 100%;
-      max-width: 500px;
-      padding: 16px 20px;
-      font-size: 1.2rem;
-      border: 3px solid #aab8d0;
-      border-radius: 12px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    #api-key-input:focus { border-color: #3a6ea5; }
-
-    .btn-primary {
-      background: #3a6ea5;
-      color: white;
-      border: none;
-      border-radius: 16px;
-      padding: 20px 48px;
-      font-size: 1.4rem;
+    #voicevox-notice span { flex: 1; }
+    #voicevox-notice a { color: #e65100; font-weight: bold; }
+    #voicevox-status {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.9rem;
       font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      min-width: 200px;
-    }
-
-    .btn-primary:hover { background: #2c5282; }
-    .btn-primary:active { transform: scale(0.97); }
-
-    #app-screen { display: none; flex-direction: column; min-height: 100vh; }
-
-    header {
-      background: #2c3e6e;
+      background: #ccc;
       color: white;
-      padding: 20px 32px;
+      white-space: nowrap;
+    }
+    #voicevox-status.ok { background: #43a047; }
+    #voicevox-status.ng { background: #e53935; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(90deg, #2e7d32, #6a1b9a);
+      color: white;
+      padding: 18px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-
     header h1 { font-size: 1.8rem; }
+    #zundamon-icon { font-size: 2.2rem; }
 
+    /* ── Mode tabs ── */
     #mode-tabs {
       display: flex;
-      gap: 0;
-      background: #e8eef6;
-      padding: 12px 20px;
-      gap: 12px;
-      border-bottom: 3px solid #c0cfe0;
+      gap: 10px;
+      background: #f1f8e9;
+      padding: 12px 18px;
+      border-bottom: 3px solid #c8e6c9;
     }
-
     .mode-tab {
       flex: 1;
-      padding: 18px 12px;
-      font-size: 1.3rem;
+      padding: 18px 10px;
+      font-size: 1.25rem;
       font-weight: bold;
-      border: 3px solid #aab8d0;
-      border-radius: 12px;
+      border: 3px solid #a5d6a7;
+      border-radius: 14px;
       background: white;
       cursor: pointer;
       transition: all 0.2s;
       text-align: center;
     }
+    .mode-tab:hover { background: #dcedc8; }
+    .mode-tab.active { background: #2e7d32; color: white; border-color: #1b5e20; }
 
-    .mode-tab:hover { background: #d0e0f0; }
-
-    .mode-tab.active {
-      background: #3a6ea5;
-      color: white;
-      border-color: #2c5282;
-    }
-
+    /* ── Main ── */
     #main-content {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 20px;
-      gap: 16px;
-      max-width: 900px;
+      padding: 18px;
+      gap: 14px;
+      max-width: 860px;
       width: 100%;
       margin: 0 auto;
     }
-
-    #chat-area {
-      flex: 1;
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      overflow-y: auto;
-      min-height: 300px;
-      max-height: 420px;
-      border: 2px solid #c0cfe0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .message {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .message.user { flex-direction: row-reverse; }
-
-    .message-bubble {
-      max-width: 72%;
-      padding: 16px 20px;
-      border-radius: 18px;
-      font-size: 1.2rem;
-      line-height: 1.6;
-      word-break: break-word;
-    }
-
-    .message.user .message-bubble {
-      background: #3a6ea5;
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .message.assistant .message-bubble {
-      background: #f0f4f8;
-      color: #1a1a2e;
-      border: 2px solid #c0cfe0;
-      border-bottom-left-radius: 4px;
-    }
-
-    .avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-      flex-shrink: 0;
-    }
-
-    .avatar.user-av { background: #3a6ea5; }
-    .avatar.ai-av { background: #e8eef6; border: 2px solid #c0cfe0; }
 
     #shiritori-status {
       display: none;
       background: #fff8e1;
       border: 2px solid #ffc107;
       border-radius: 12px;
-      padding: 14px 20px;
+      padding: 12px 18px;
       font-size: 1.1rem;
     }
+    #shiritori-status span { font-weight: bold; color: #e65100; }
 
-    #shiritori-status span { font-weight: bold; color: #d17a00; }
+    /* ── Chat ── */
+    #chat-area {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      min-height: 280px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 2px solid #c8e6c9;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
+    .message { display: flex; gap: 10px; align-items: flex-end; }
+    .message.user { flex-direction: row-reverse; }
+
+    .message-bubble {
+      max-width: 74%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+    .message.user .message-bubble {
+      background: #2e7d32;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message.assistant .message-bubble {
+      background: #f3e5f5;
+      color: #1a1a2e;
+      border: 2px solid #ce93d8;
+      border-bottom-left-radius: 4px;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .avatar.user-av { background: #2e7d32; }
+    .avatar.ai-av   { background: #f3e5f5; border: 2px solid #ce93d8; }
+
+    /* ── Mic area ── */
     #mic-area {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
-      padding: 16px 0;
+      gap: 14px;
+      padding: 12px 0;
     }
-
-    #mic-btn {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      border: none;
-      background: #3a6ea5;
-      color: white;
-      font-size: 2.6rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 16px rgba(58,110,165,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #mic-btn:hover { background: #2c5282; transform: scale(1.05); }
-    #mic-btn.recording { background: #e53935; animation: pulse 1s infinite; }
-    #mic-btn:disabled { background: #aaa; cursor: not-allowed; box-shadow: none; transform: none; }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); box-shadow: 0 4px 16px rgba(229,57,53,0.4); }
-      50% { transform: scale(1.08); box-shadow: 0 4px 24px rgba(229,57,53,0.7); }
-    }
-
     #status-text {
       font-size: 1.2rem;
       color: #555;
       min-height: 30px;
       text-align: center;
     }
-
     #interim-text {
       font-size: 1.1rem;
-      color: #3a6ea5;
+      color: #6a1b9a;
       min-height: 28px;
       text-align: center;
       font-style: italic;
+    }
+    #mic-btn {
+      width: 114px;
+      height: 114px;
+      border-radius: 50%;
+      border: none;
+      background: #2e7d32;
+      color: white;
+      font-size: 2.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 18px rgba(46,125,50,0.45);
+    }
+    #mic-btn:hover { background: #1b5e20; transform: scale(1.05); }
+    #mic-btn.recording { background: #e53935; animation: pulse 1s infinite; }
+    #mic-btn:disabled { background: #aaa; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); box-shadow: 0 4px 18px rgba(229,57,53,0.4); }
+      50%      { transform: scale(1.1); box-shadow: 0 4px 28px rgba(229,57,53,0.7); }
     }
 
     #stop-btn {
@@ -249,206 +199,216 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     #stop-btn:hover { background: #b71c1c; }
 
-    .error-msg {
-      background: #ffebee;
-      border: 2px solid #ef9a9a;
-      border-radius: 12px;
-      padding: 12px 20px;
-      color: #c62828;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-
-    #volume-control {
+    #volume-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       font-size: 1rem;
       color: #555;
     }
-
-    #volume-control input { width: 120px; }
-
-    .thinking-dots {
-      display: inline-block;
-    }
-    .thinking-dots::after {
-      content: '';
-      animation: dots 1.2s steps(4, end) infinite;
-    }
-    @keyframes dots {
-      0%   { content: ''; }
-      25%  { content: '.'; }
-      50%  { content: '..'; }
-      75%  { content: '...'; }
-      100% { content: ''; }
-    }
+    #volume-row input { width: 120px; accent-color: #2e7d32; }
   </style>
 </head>
 <body>
 
-<!-- セットアップ画面 -->
-<div id="setup-screen">
-  <h1>🎙️ おしゃべりアシスタント</h1>
-  <p>ご利用には Claude API キーが必要です。<br>キーはこの端末のメモリ内にのみ保存されます。</p>
-  <input type="password" id="api-key-input" placeholder="Claude API キーを入力してください (sk-ant-...)" autocomplete="off">
-  <div id="setup-error" class="error-msg" style="display:none;"></div>
-  <button class="btn-primary" onclick="startApp()">はじめる</button>
+<!-- VOICEVOX 接続案内 -->
+<div id="voicevox-notice">
+  <span>🎵 ずんだもんの声には <a href="https://voicevox.hiroshiba.jp/" target="_blank">VOICEVOX エンジン</a>（無料）の起動が必要です。起動後にこのページを開いてください。</span>
+  <span id="voicevox-status">確認中…</span>
 </div>
 
-<!-- アプリ本体 -->
-<div id="app-screen">
-  <header>
-    <h1>🎙️ おしゃべりアシスタント</h1>
-    <div id="volume-control">
-      🔊
-      <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1" title="音量">
-    </div>
-  </header>
+<header>
+  <h1>ずんだもんとおしゃべり 🌿</h1>
+  <div id="zundamon-icon">🤖</div>
+</header>
 
-  <div id="mode-tabs">
-    <button class="mode-tab active" data-mode="chat" onclick="setMode('chat')">💬 自由会話</button>
-    <button class="mode-tab" data-mode="search" onclick="setMode('search')">🔍 調べもの</button>
-    <button class="mode-tab" data-mode="shiritori" onclick="setMode('shiritori')">🎮 しりとり</button>
+<div id="mode-tabs">
+  <button class="mode-tab active" data-mode="chat"     onclick="setMode('chat')">💬 自由会話</button>
+  <button class="mode-tab"        data-mode="search"   onclick="setMode('search')">🔍 調べもの</button>
+  <button class="mode-tab"        data-mode="shiritori" onclick="setMode('shiritori')">🎮 しりとり</button>
+</div>
+
+<div id="main-content">
+  <div id="shiritori-status">
+    しりとり中 ― 次は <span id="last-char">―</span> から始まる言葉をどうぞ！
+    ｜使った言葉：<span id="used-count">0</span>語
   </div>
 
-  <div id="main-content">
-    <div id="shiritori-status">
-      しりとり中 — 前の言葉の最後の文字：<span id="last-char">―</span>
-      ｜使った言葉：<span id="used-count">0</span>語
-    </div>
+  <div id="chat-area"></div>
 
-    <div id="chat-area"></div>
-
-    <div id="mic-area">
-      <div id="status-text">マイクボタンを押して話しかけてください</div>
-      <div id="interim-text"></div>
-      <button id="mic-btn" onclick="toggleMic()" title="マイク">🎤</button>
-      <button id="stop-btn" onclick="stopSpeaking()">⏹ 読み上げを止める</button>
-    </div>
+  <div id="mic-area">
+    <div id="status-text">マイクボタンを押して話しかけてね！</div>
+    <div id="interim-text"></div>
+    <button id="mic-btn" onclick="toggleMic()">🎤</button>
+    <button id="stop-btn" onclick="stopSpeaking()">⏹ しゃべるのを止める</button>
+    <div id="volume-row">🔊 <input type="range" id="volume-slider" min="0" max="2" step="0.1" value="1" title="音量"></div>
   </div>
 </div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let apiKey = '';
-let mode = 'chat';
-let conversation = [];
-let isRecording = false;
-let isSpeaking = false;
-let recognition = null;
-let currentUtterance = null;
-let shiritori = { lastChar: '', usedWords: new Set(), active: false };
+// ═══════════════════════════════════════════════════════════════════════════════
+//  VOICEVOX
+// ═══════════════════════════════════════════════════════════════════════════════
+const VOICEVOX_URL  = 'http://localhost:50021';
+const ZUNDAMON_ID   = 3; // ずんだもん(ノーマル)
+let voicevoxOk      = false;
+let audioQueue      = [];
+let isPlayingAudio  = false;
 
-// ─── Setup ───────────────────────────────────────────────────────────────────
-function startApp() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    document.getElementById('setup-error').style.display = 'block';
-    document.getElementById('setup-error').textContent = 'APIキーは sk-ant- で始まる形式です。ご確認ください。';
+async function checkVoicevox() {
+  try {
+    const r = await fetch(VOICEVOX_URL + '/version', { signal: AbortSignal.timeout(2000) });
+    voicevoxOk = r.ok;
+  } catch { voicevoxOk = false; }
+  const el = document.getElementById('voicevox-status');
+  el.textContent = voicevoxOk ? '✅ 接続OK' : '❌ 未接続';
+  el.className   = voicevoxOk ? 'ok' : 'ng';
+}
+
+async function speak(text) {
+  if (!voicevoxOk) { speakFallback(text); return; }
+  try {
+    const vol = parseFloat(document.getElementById('volume-slider').value);
+    // 音声合成クエリ生成
+    const qRes = await fetch(`${VOICEVOX_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${ZUNDAMON_ID}`, {
+      method: 'POST'
+    });
+    if (!qRes.ok) throw new Error();
+    const query = await qRes.json();
+    query.volumeScale = vol;
+    query.speedScale  = 0.92;
+
+    // 音声合成
+    const sRes = await fetch(`${VOICEVOX_URL}/synthesis?speaker=${ZUNDAMON_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(query)
+    });
+    if (!sRes.ok) throw new Error();
+    const blob = await sRes.blob();
+    const url  = URL.createObjectURL(blob);
+    enqueueAudio(url);
+  } catch {
+    speakFallback(text);
+  }
+}
+
+function enqueueAudio(url) {
+  audioQueue.push(url);
+  if (!isPlayingAudio) playNextAudio();
+}
+
+function playNextAudio() {
+  if (audioQueue.length === 0) {
+    isPlayingAudio = false;
+    document.getElementById('stop-btn').style.display = 'none';
     return;
   }
-  apiKey = key;
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'flex';
-  greetUser();
+  isPlayingAudio = true;
+  document.getElementById('stop-btn').style.display = 'block';
+  const url = audioQueue.shift();
+  const audio = new Audio(url);
+  audio.onended = () => { URL.revokeObjectURL(url); playNextAudio(); };
+  audio.onerror = () => { URL.revokeObjectURL(url); playNextAudio(); };
+  audio.play().catch(() => playNextAudio());
 }
 
-// ─── Mode ─────────────────────────────────────────────────────────────────────
+function stopSpeaking() {
+  audioQueue = [];
+  isPlayingAudio = false;
+  document.getElementById('stop-btn').style.display = 'none';
+  window.speechSynthesis.cancel();
+}
+
+// VOICEVOX が使えない場合のフォールバック
+function speakFallback(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang   = 'ja-JP';
+  u.rate   = 0.88;
+  u.volume = parseFloat(document.getElementById('volume-slider').value);
+  u.onstart = () => document.getElementById('stop-btn').style.display = 'block';
+  u.onend = u.onerror = () => document.getElementById('stop-btn').style.display = 'none';
+  window.speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════════════════════════════════════
+let mode        = 'chat';
+let recognition = null;
+let isRecording = false;
+let shiritori   = { lastChar: '', usedWords: new Set(), active: false };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Mode
+// ═══════════════════════════════════════════════════════════════════════════════
 function setMode(newMode) {
   mode = newMode;
-  document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === newMode));
-  conversation = [];
-
-  const shirStatus = document.getElementById('shiritori-status');
+  document.querySelectorAll('.mode-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.mode === newMode)
+  );
+  clearChat();
+  stopSpeaking();
+  const ss = document.getElementById('shiritori-status');
   if (newMode === 'shiritori') {
     shiritori = { lastChar: '', usedWords: new Set(), active: true };
-    shirStatus.style.display = 'block';
-    updateShiritoriStatus();
-    clearChat();
-    greetShiritori();
+    ss.style.display = 'block';
+    startShiritori();
   } else {
     shiritori.active = false;
-    shirStatus.style.display = 'none';
-    clearChat();
-    greetUser();
+    ss.style.display = 'none';
+    greetMode(newMode);
   }
 }
 
-function greetUser() {
-  const greetings = {
-    chat: 'こんにちは！何でもお話しください。お天気や趣味、思い出話など、なんでも大丈夫ですよ。',
-    search: 'こんにちは！知りたいことや調べたいことを話しかけてください。できる限りお答えします。',
+function greetMode(m) {
+  const g = {
+    chat:   'こんにちは！なんでもお話しください。天気のこと、趣味のこと、思い出話でも大丈夫なのだ！',
+    search: 'こんにちは！知りたいことや気になることを話しかけてほしいのだ。できる限り答えるのだ！',
   };
-  if (mode in greetings) {
-    addMessage('assistant', greetings[mode]);
-    speak(greetings[mode]);
-  }
+  addMessage('assistant', g[m]);
+  speak(g[m]);
 }
 
-function greetShiritori() {
-  const msg = 'しりとりをはじめましょう！私が先に言いますね。「りんご」。次は「ご」から始まる言葉を言ってください。';
-  addMessage('assistant', msg);
-  shiritori.lastChar = 'ご';
-  shiritori.usedWords.add('りんご');
-  updateShiritoriStatus();
-  speak(msg);
-}
-
-// ─── Speech Recognition ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Speech Recognition
+// ═══════════════════════════════════════════════════════════════════════════════
 function toggleMic() {
-  if (isRecording) {
-    stopRecording();
-  } else {
-    startRecording();
-  }
+  isRecording ? stopRecording() : startRecording();
 }
 
 function startRecording() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    showStatus('このブラウザは音声認識に対応していません。Chrome をお使いください。', true);
-    return;
-  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showStatus('このブラウザは音声認識に非対応です。Chrome を使ってね！', true); return; }
+  stopSpeaking();
 
-  if (isSpeaking) stopSpeaking();
-
-  recognition = new SpeechRecognition();
+  recognition = new SR();
   recognition.lang = 'ja-JP';
   recognition.interimResults = true;
-  recognition.maxAlternatives = 1;
 
   recognition.onstart = () => {
     isRecording = true;
     document.getElementById('mic-btn').classList.add('recording');
     document.getElementById('mic-btn').textContent = '⏹';
-    showStatus('聞いています…');
+    showStatus('聞いているのだ…');
   };
 
   recognition.onresult = (e) => {
-    let interim = '';
-    let final = '';
+    let interim = '', final = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) final += t;
-      else interim += t;
+      if (e.results[i].isFinal) final += t; else interim += t;
     }
     document.getElementById('interim-text').textContent = interim;
-    if (final) handleUserInput(final);
+    if (final) handleInput(final.trim());
   };
 
-  recognition.onerror = (e) => {
-    showStatus('音声認識エラー: ' + e.error, true);
-    stopRecording();
-  };
-
-  recognition.onend = () => {
-    stopRecording();
-  };
-
+  recognition.onerror = (e) => { showStatus('音声認識エラー: ' + e.error, true); stopRecording(); };
+  recognition.onend   = stopRecording;
   recognition.start();
 }
 
@@ -457,250 +417,291 @@ function stopRecording() {
   document.getElementById('mic-btn').classList.remove('recording');
   document.getElementById('mic-btn').textContent = '🎤';
   document.getElementById('interim-text').textContent = '';
-  if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
-  showStatus('マイクボタンを押して話しかけてください');
+  if (recognition) { try { recognition.stop(); } catch{} recognition = null; }
+  showStatus('マイクボタンを押して話しかけてね！');
 }
 
-// ─── User Input Handler ───────────────────────────────────────────────────────
-async function handleUserInput(text) {
-  text = text.trim();
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Input Router
+// ═══════════════════════════════════════════════════════════════════════════════
+function handleInput(text) {
   if (!text) return;
   stopRecording();
   addMessage('user', text);
-  showStatus('考えています…');
-  document.getElementById('mic-btn').disabled = true;
-
-  try {
-    if (mode === 'shiritori') {
-      await handleShiritori(text);
-    } else {
-      await callClaude(text);
-    }
-  } catch(e) {
-    showStatus('エラーが発生しました: ' + e.message, true);
-  }
-  document.getElementById('mic-btn').disabled = false;
-  showStatus('マイクボタンを押して話しかけてください');
+  if      (mode === 'chat')      handleChat(text);
+  else if (mode === 'search')    handleSearch(text);
+  else if (mode === 'shiritori') handleShiritori(text);
 }
 
-// ─── Claude API ───────────────────────────────────────────────────────────────
-const SYSTEM_PROMPTS = {
-  chat: `あなたは高齢者向けの優しいおしゃべり相手です。話し相手として、温かく、ゆっくりとした日本語で会話してください。
-- 短く分かりやすい言葉を使ってください
-- 相手の話をよく聞いて、共感してください
-- 励ましや褒め言葉を適度に入れてください
-- 質問は一度に一つだけにしてください
-- 200字以内で答えてください`,
+// ═══════════════════════════════════════════════════════════════════════════════
+//  自由会話 ― ルールベース
+// ═══════════════════════════════════════════════════════════════════════════════
+const CHAT_RULES = [
+  // あいさつ
+  [/こんにちは|おはよう|こんばんは|やあ|はじめまして/,
+   ['こんにちは！今日も元気そうでよかったのだ！','おはようなのだ！今日もいい一日にするのだ！','こんばんは！夜もお話しできてうれしいのだ！']],
+  // 天気
+  [/天気|晴れ|雨|曇り|雪|暑い|寒い/,
+   ['今日のお天気はどうだったのだ？お散歩できそうな日はいいのだ！','雨の日は本を読んだりお茶を飲んだりするのがいいのだ！','晴れの日は体を動かすと気持ちいいのだ！']],
+  // 体調
+  [/体調|元気|疲れ|しんどい|痛い|だるい/,
+   ['体を大切にしてほしいのだ。無理せず休むのが一番なのだ！','疲れたときは好きな音楽でも聴くといいのだ。','何かつらいことがあったら話してほしいのだ！']],
+  // 食事
+  [/ご飯|食事|料理|おいしい|昼ご飯|夕飯|朝ごはん|食べた/,
+   ['おいしいものを食べると元気が出るのだ！何が好きなのだ？','手料理は最高なのだ！好きな料理はあるのだ？','野菜をたくさん食べると健康にいいのだ！']],
+  // 趣味
+  [/趣味|好き|読書|音楽|散歩|旅行|園芸|テレビ|映画/,
+   ['素敵な趣味なのだ！もっと詳しく教えてほしいのだ！','好きなことがあると毎日楽しいのだ。ずんだもんはずんだが大好きなのだ！','それは楽しそうなのだ！ずんだもんも気になるのだ！']],
+  // 家族
+  [/家族|子供|孫|息子|娘|夫|妻|旦那|おじいちゃん|おばあちゃん/,
+   ['家族の話を聞かせてほしいのだ！','家族がいると心強いのだ。仲良くするのだ！','お孫さんの話はいつ聞いても微笑ましいのだ！']],
+  // 褒め
+  [/すごい|上手|えらい|ありがとう|助かった/,
+   ['えへへ、ありがとうなのだ！','そう言ってもらえるとうれしいのだ！','ずんだもんもがんばるのだ！']],
+  // 否定・悲しい
+  [/悲しい|辛い|寂しい|不安|心配|つらい/,
+   ['そんなときはゆっくり話してほしいのだ。一人じゃないのだ！','つらいときは休むのが大事なのだ。ずんだもんはいつでも話を聞くのだ！','大丈夫なのだ。きっとよくなるのだ！']],
+  // しりとり誘導
+  [/しりとり|遊び|ゲーム/,
+   ['しりとりをやりたいのだ？「しりとり」タブに切り替えるのだ！']],
+];
 
-  search: `あなたは高齢者向けの丁寧な案内係です。質問に対して分かりやすく、簡潔に日本語で答えてください。
-- 難しい言葉は使わず、分かりやすく説明してください
-- 箇条書きより、普通の文章で話すように答えてください
-- 300字以内でまとめてください`,
-};
-
-async function callClaude(userText) {
-  conversation.push({ role: 'user', content: userText });
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-8',
-      max_tokens: 512,
-      system: SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.chat,
-      messages: conversation.slice(-10),
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `APIエラー (${res.status})`);
+function handleChat(text) {
+  let reply = null;
+  for (const [pattern, responses] of CHAT_RULES) {
+    if (pattern.test(text)) {
+      reply = responses[Math.floor(Math.random() * responses.length)];
+      break;
+    }
   }
-
-  const data = await res.json();
-  const reply = data.content[0].text;
-  conversation.push({ role: 'assistant', content: reply });
+  if (!reply) {
+    const fallback = [
+      'なるほどなのだ！もっと教えてほしいのだ！',
+      'そうなのか！ずんだもんも気になるのだ！',
+      'うーん、ずんだもんにはちょっと難しいのだが、話を聞いているのだ！',
+      'それは面白いのだ！もう少し詳しく聞かせてほしいのだ！',
+      'ほうほう、なのだ！何でも話してほしいのだ！',
+    ];
+    reply = fallback[Math.floor(Math.random() * fallback.length)];
+  }
   addMessage('assistant', reply);
   speak(reply);
 }
 
-// ─── Shiritori Logic ──────────────────────────────────────────────────────────
-function toHiragana(str) {
-  return str.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+// ═══════════════════════════════════════════════════════════════════════════════
+//  調べもの ― 内蔵知識ベース
+// ═══════════════════════════════════════════════════════════════════════════════
+const KNOWLEDGE = [
+  [/血圧|高血圧/, '血圧は上が140、下が90以上だと高血圧とされるのだ。塩分を控えて、毎日少し歩くといいのだ！'],
+  [/糖尿病|血糖/, '糖尿病は血糖値が高い状態が続く病気なのだ。甘いものや白いご飯を食べ過ぎないよう気をつけるのだ！'],
+  [/認知症|ボケ|物忘れ/, '認知症の予防には、人と話すこと、体を動かすこと、趣味を持つことが効果的なのだ。ずんだもんと毎日おしゃべりするのもいいのだ！'],
+  [/睡眠|眠れない|不眠/, '良い睡眠のためには、毎日同じ時間に起きること、昼寝は30分以内にすること、寝る前にスマホを見ないことが大切なのだ！'],
+  [/運動|体操|ウォーキング/, '1日30分の歩行がおすすめなのだ。ラジオ体操も全身を動かせて効果的なのだ！'],
+  [/食事|栄養|野菜/, '野菜、魚、豆腐、海藻をバランスよく食べるといいのだ。1日30品目を目指すのだ！'],
+  [/水分|熱中症/, '1日1.5〜2リットルの水分補給が大切なのだ。のどが渇いていなくても、こまめに飲むのだ！'],
+  [/薬|服薬/, '薬は医師の指示通りに服薬するのだ。飲み忘れに気づいたら主治医や薬剤師に相談するのだ！'],
+  [/骨粗しょう症|骨/, 'カルシウムが多い牛乳、小魚、緑の野菜を食べるのだ。日光を浴びることでビタミンDが作られて骨が丈夫になるのだ！'],
+  [/便秘|お腹/, '食物繊維（野菜・きのこ・豆類）と水分をしっかりとるのだ。毎朝同じ時間にトイレに行く習慣も大切なのだ！'],
+  [/天気予報/, '今の天気予報はテレビやスマートフォンで確認できるのだ。ずんだもんはリアルタイムの情報は持っていないのだ、ごめんなのだ！'],
+  [/緊急|119|救急/, '体調が急に悪くなったときは119番に電話するのだ！はっきり住所と症状を伝えるのだ！'],
+  [/詐欺|電話詐欺|還付金/, '知らない番号からの電話でお金の話が出たらまず疑うのだ！家族や警察（110番）に相談するのだ！'],
+];
+
+function handleSearch(text) {
+  let reply = null;
+  for (const [pattern, answer] of KNOWLEDGE) {
+    if (pattern.test(text)) { reply = answer; break; }
+  }
+  if (!reply) {
+    reply = `「${text}」について、ずんだもんの知識では詳しく答えられないのだ。かかりつけのお医者さんや図書館で調べてみてほしいのだ！`;
+  }
+  addMessage('assistant', reply);
+  speak(reply);
 }
 
-function getFirstChar(word) {
-  return toHiragana(word.replace(/[ぁぃぅぇぉっゃゅょァィゥェォッャュョ]/g, c => {
-    const map = {'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','っ':'つ','ゃ':'や','ゅ':'ゆ','ょ':'よ',
-                 'ァ':'あ','ィ':'い','ゥ':'う','ェ':'え','ォ':'お','ッ':'つ','ャ':'や','ュ':'ゆ','ョ':'よ'};
-    return map[c] || c;
-  }))[0];
+// ═══════════════════════════════════════════════════════════════════════════════
+//  しりとり
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ずんだもんが使える語彙（あ行〜わ行をカバー）
+const SHIRITORI_WORDS = {
+  あ:['あさがお','あひる','あめんぼ','あいすくりーむ','あかとんぼ','あじさい','あさり','あんこ'],
+  い:['いちご','いぬ','いもうと','いのしし','いちりんしゃ','いか','いくら','いわし'],
+  う:['うさぎ','うし','うみ','うぐいす','うどん','うなぎ','うめ','うちわ'],
+  え:['えんぴつ','えのき','えび','えいご','えがお','えり','えほん'],
+  お:['おにぎり','おたまじゃくし','おおかみ','おうむ','おはぎ','おてら','おもち'],
+  か:['かに','かめ','かぼちゃ','かたつむり','かがみ','かみなり','かんじ','かえる','かき'],
+  き:['きつね','きゅうり','きのこ','きりん','きんぎょ','きんぴらごぼう','きんかん'],
+  く:['くじら','くり','くも','くるみ','くわがた','くだもの','くり'],
+  け:['けいたいでんわ','けしごむ','けんどう','けむし','けいさん'],
+  こ:['こぶた','こまどり','こいのぼり','こおり','こぶし','こーひー','こがね虫'],
+  さ:['さくら','さるすべり','さんま','さつまいも','さけ','さぼてん','さかな'],
+  し:['しまうま','しらたき','しいたけ','しょうが','しりとり','しんかんせん'],
+  す:['すいか','すずめ','すずき','すみれ','すっぽん','するめ','すいせん'],
+  せ:['せみ','せんせい','せかい','せっけん','せみ','せんべい'],
+  そ:['そら','そば','そりー','そらまめ','そうめん','そつぎょう'],
+  た:['たぬき','たけのこ','たこ','たいよう','たんぽぽ','たまご','たい'],
+  ち:['ちょうちょ','ちきゅう','ちーず','ちくわ','ちゃわん','ちきん'],
+  つ:['つばさ','つばめ','つき','つくし','つる','つりがね','つみき'],
+  て:['てんとうむし','てぶくろ','てら','てがみ','てるてるぼうず'],
+  と:['とんぼ','とらんぷ','とり','ときわ','とうふ','とまと','とびうお'],
+  な:['なまず','なす','なでしこ','なっとう','なつみかん','なし'],
+  に:['にじ','にわとり','にんじん','にんにく','にほんご','にぼし'],
+  ぬ:['ぬまがえる','ぬいぐるみ','ぬか','ぬれせんべい'],
+  ね:['ねこ','ねずみ','ねぎ','ねんがじょう','ねじ'],
+  の:['のりまき','のぼり','のこぎり','のりもの','のはら'],
+  は:['はな','はやぶさ','はぐるま','はちみつ','はも','はくさい','はっさく'],
+  ひ:['ひまわり','ひつじ','ひよこ','ひょうたん','ひらめ','ひいらぎ'],
+  ふ:['ふじさん','ふくろう','ふね','ふき','ふなずし'],
+  へ:['へび','へちま','ヘリコプター','へそ'],
+  ほ:['ほたる','ほっかいどう','ほうれんそう','ほたて','ほろほろちょう'],
+  ま:['まつり','まぐろ','まめ','まんじゅう','まつぼっくり','まいたけ'],
+  み:['みかん','みずたまり','みそ','みつばち','みずうみ','みょうが'],
+  む:['むし','むぎ','むらさき','むかで','むらさきいも'],
+  め:['めだか','めじろ','めろん','めだかのがっこう','めんたいこ'],
+  も:['もち','もも','もぐら','もりのくま','もずく','もやし'],
+  や:['やきとり','やぎ','やまのいも','やかん','やしのき'],
+  ゆ:['ゆず','ゆき','ゆりかもめ','ゆびわ','ゆきだるま'],
+  よ:['よもぎ','よる','ようかん','よつばのくろーばー'],
+  ら:['らっこ','らいちょう','らいむぎ','らんちゅう'],
+  り:['りんご','りす','りゅう','りぼん','りんどう'],
+  る:['るびー','るーれっと'],
+  れ:['れんこん','れもん','れいぞうこ'],
+  ろ:['ろば','ろうそく','ろーすとびーふ'],
+  わ:['わかめ','わらびもち','わし','わに','わかさぎ'],
+};
+
+function toHira(s) {
+  return s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
 }
 
-function getLastChar(word) {
-  const h = toHiragana(word);
-  // normalize small kana at end
-  const last = h[h.length - 1];
-  const map = {'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','っ':'つ','ゃ':'や','ゅ':'ゆ','ょ':'よ'};
-  return map[last] || last;
+const SMALL_MAP = {'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','っ':'つ','ゃ':'や','ゅ':'ゆ','ょ':'よ','ー':'あ'};
+
+function normalize(c) { return SMALL_MAP[c] || c; }
+
+function firstChar(w) { return normalize(toHira(w)[0]); }
+function lastChar(w)  {
+  const h = toHira(w);
+  return normalize(h[h.length - 1]);
 }
 
-async function handleShiritori(userWord) {
-  const hWord = toHiragana(userWord);
-  const firstChar = getFirstChar(hWord);
-
-  // check starts with correct char
-  if (shiritori.lastChar && firstChar !== shiritori.lastChar) {
-    const msg = `「${shiritori.lastChar}」から始まる言葉を言ってください。もう一度どうぞ！`;
-    addMessage('assistant', msg);
-    speak(msg);
-    return;
-  }
-
-  // check duplicate
-  if (shiritori.usedWords.has(hWord)) {
-    const msg = `「${userWord}」はもう使いましたよ。別の言葉を言ってください！`;
-    addMessage('assistant', msg);
-    speak(msg);
-    return;
-  }
-
-  const lastChar = getLastChar(hWord);
-
-  // check ん
-  if (lastChar === 'ん') {
-    const msg = `「${userWord}」は「ん」で終わるので負けです！またやりましょう。`;
-    addMessage('assistant', msg);
-    shiritori = { lastChar: '', usedWords: new Set(), active: false };
-    updateShiritoriStatus();
-    speak(msg);
-    setTimeout(() => {
-      shiritori = { lastChar: '', usedWords: new Set(), active: true };
-      greetShiritori();
-    }, 4000);
-    return;
-  }
-
-  shiritori.usedWords.add(hWord);
-  shiritori.lastChar = lastChar;
+function startShiritori() {
+  const word = 'りんご';
+  shiritori.usedWords.add(word);
+  shiritori.lastChar = lastChar(word);
   updateShiritoriStatus();
-
-  // Ask Claude for a word starting with lastChar
-  const prompt = `しりとりゲームで「${userWord}」が来ました。「${lastChar}」から始まる日本語の一般的な言葉（名詞）を一つだけ答えてください。
-条件：
-- 「ん」で終わらない言葉
-- まだ使っていない言葉（使用済み：${[...shiritori.usedWords].join('、')}）
-- ひらがなまたはカタカナで一語だけ回答し、余計な説明は不要
-返答形式：言葉のみ（例：「りんご」）`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-8',
-      max_tokens: 32,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-
-  if (!res.ok) throw new Error('APIエラー');
-
-  const data = await res.json();
-  let aiWord = data.content[0].text.trim().replace(/「|」|。|、|\s/g, '');
-  const aiHWord = toHiragana(aiWord);
-  const aiLastChar = getLastChar(aiHWord);
-
-  // Validate AI word
-  if (getFirstChar(aiHWord) !== lastChar || aiLastChar === 'ん' || shiritori.usedWords.has(aiHWord)) {
-    const msg = `うーん、思い浮かびません。私の負けです！またやりましょう。`;
-    addMessage('assistant', msg);
-    speak(msg);
-    setTimeout(() => {
-      shiritori = { lastChar: '', usedWords: new Set(), active: true };
-      greetShiritori();
-    }, 4000);
-    return;
-  }
-
-  shiritori.usedWords.add(aiHWord);
-  shiritori.lastChar = aiLastChar;
-  updateShiritoriStatus();
-
-  const msg = `「${aiWord}」！次は「${aiLastChar}」から始まる言葉をどうぞ。`;
+  const msg = 'しりとりをはじめるのだ！まずずんだもんから。「りんご」！次は「ご」から始まる言葉を言うのだ！';
   addMessage('assistant', msg);
   speak(msg);
 }
 
+function handleShiritori(text) {
+  const word = toHira(text.replace(/\s/g, ''));
+
+  // 先頭チェック
+  if (shiritori.lastChar && firstChar(word) !== shiritori.lastChar) {
+    const msg = `「${shiritori.lastChar}」から始まる言葉を言うのだ！もう一度どうぞ！`;
+    addMessage('assistant', msg);
+    speak(msg);
+    return;
+  }
+
+  // 重複チェック
+  if (shiritori.usedWords.has(word)) {
+    const msg = `「${text}」はもう使ったのだ！別の言葉を言うのだ！`;
+    addMessage('assistant', msg);
+    speak(msg);
+    return;
+  }
+
+  const lc = lastChar(word);
+
+  // ん で終わる
+  if (lc === 'ん') {
+    shiritori.usedWords.add(word);
+    const msg = `「${text}」は「ん」で終わるのだ…残念、あなたの負けなのだ！またやろうなのだ！`;
+    addMessage('assistant', msg);
+    speak(msg);
+    resetShiritori(4000);
+    return;
+  }
+
+  shiritori.usedWords.add(word);
+  shiritori.lastChar = lc;
+  updateShiritoriStatus();
+
+  // ずんだもんの返し
+  const candidates = (SHIRITORI_WORDS[lc] || []).filter(w => !shiritori.usedWords.has(w));
+
+  if (candidates.length === 0) {
+    const msg = `「${lc}」から始まる言葉が思いつかないのだ…ずんだもんの負けなのだ！またやろうなのだ！`;
+    addMessage('assistant', msg);
+    speak(msg);
+    resetShiritori(4000);
+    return;
+  }
+
+  const aiWord = candidates[Math.floor(Math.random() * candidates.length)];
+  shiritori.usedWords.add(aiWord);
+  const aiLast = lastChar(aiWord);
+  shiritori.lastChar = aiLast;
+  updateShiritoriStatus();
+
+  const msg = `「${aiWord}」なのだ！次は「${aiLast}」から始まる言葉をどうぞ！`;
+  addMessage('assistant', msg);
+  speak(msg);
+}
+
+function resetShiritori(delay) {
+  setTimeout(() => {
+    shiritori = { lastChar: '', usedWords: new Set(), active: true };
+    updateShiritoriStatus();
+    startShiritori();
+  }, delay);
+}
+
 function updateShiritoriStatus() {
-  document.getElementById('last-char').textContent = shiritori.lastChar || '―';
+  document.getElementById('last-char').textContent  = shiritori.lastChar || '―';
   document.getElementById('used-count').textContent = shiritori.usedWords.size;
 }
 
-// ─── Speech Synthesis ─────────────────────────────────────────────────────────
-function speak(text) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'ja-JP';
-  utter.rate = 0.88;
-  utter.volume = parseFloat(document.getElementById('volume-slider').value);
-  utter.onstart = () => {
-    isSpeaking = true;
-    document.getElementById('stop-btn').style.display = 'block';
-  };
-  utter.onend = utter.onerror = () => {
-    isSpeaking = false;
-    document.getElementById('stop-btn').style.display = 'none';
-  };
-  currentUtterance = utter;
-  window.speechSynthesis.speak(utter);
-}
-
-function stopSpeaking() {
-  window.speechSynthesis.cancel();
-  isSpeaking = false;
-  document.getElementById('stop-btn').style.display = 'none';
-}
-
-// ─── UI Helpers ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+//  UI Helpers
+// ═══════════════════════════════════════════════════════════════════════════════
 function addMessage(role, text) {
   const area = document.getElementById('chat-area');
-  const div = document.createElement('div');
+  const div  = document.createElement('div');
   div.className = 'message ' + (role === 'user' ? 'user' : 'assistant');
 
-  const avatar = document.createElement('div');
-  avatar.className = 'avatar ' + (role === 'user' ? 'user-av' : 'ai-av');
-  avatar.textContent = role === 'user' ? '👤' : '🤖';
+  const av   = document.createElement('div');
+  av.className = 'avatar ' + (role === 'user' ? 'user-av' : 'ai-av');
+  av.textContent = role === 'user' ? '👤' : '🤖';
 
-  const bubble = document.createElement('div');
-  bubble.className = 'message-bubble';
-  bubble.textContent = text;
+  const bub  = document.createElement('div');
+  bub.className = 'message-bubble';
+  bub.textContent = text;
 
-  div.appendChild(avatar);
-  div.appendChild(bubble);
+  div.appendChild(av);
+  div.appendChild(bub);
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
 }
 
-function clearChat() {
-  document.getElementById('chat-area').innerHTML = '';
-}
+function clearChat() { document.getElementById('chat-area').innerHTML = ''; }
 
 function showStatus(msg, isError = false) {
   const el = document.getElementById('status-text');
   el.textContent = msg;
   el.style.color = isError ? '#c62828' : '#555';
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════════════════════════════════
+(async () => {
+  await checkVoicevox();
+  greetMode('chat');
+})();
 </script>
 </body>
 </html>
