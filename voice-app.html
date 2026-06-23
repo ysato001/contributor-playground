@@ -215,8 +215,12 @@
 
 <!-- VOICEVOX 接続案内 -->
 <div id="voicevox-notice">
-  <span>🎵 ずんだもんの声には <a href="https://voicevox.hiroshiba.jp/" target="_blank">VOICEVOX エンジン</a>（無料）の起動が必要です。起動後にこのページを開いてください。</span>
+  <span>🎵 ずんだもんの声には <a href="https://voicevox.hiroshiba.jp/" target="_blank">VOICEVOX エンジン</a>（無料）の起動が必要です。
+  ※ このファイルは <code>file://</code> では動きません。
+  <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer" target="_blank">Live Server</a> や
+  <code>python -m http.server</code> などでローカルサーバー経由で開いてください。</span>
   <span id="voicevox-status">確認中…</span>
+  <button id="recheck-btn" onclick="recheckVoicevox()" style="padding:6px 16px;border-radius:20px;border:2px solid #f9a825;background:white;cursor:pointer;font-size:0.9rem;font-weight:bold;white-space:nowrap;">🔄 再確認</button>
 </div>
 
 <header>
@@ -258,13 +262,25 @@ let audioQueue      = [];
 let isPlayingAudio  = false;
 
 async function checkVoicevox() {
+  const el = document.getElementById('voicevox-status');
+  el.textContent = '確認中…';
+  el.className   = '';
   try {
-    const r = await fetch(VOICEVOX_URL + '/version', { signal: AbortSignal.timeout(2000) });
+    // /version は存在しないため /speakers を使う
+    const r = await fetch(VOICEVOX_URL + '/speakers', { signal: AbortSignal.timeout(3000) });
     voicevoxOk = r.ok;
   } catch { voicevoxOk = false; }
-  const el = document.getElementById('voicevox-status');
-  el.textContent = voicevoxOk ? '✅ 接続OK' : '❌ 未接続';
+  el.textContent = voicevoxOk ? '✅ 接続OK' : '❌ 未接続（VOICEVOX を起動してください）';
   el.className   = voicevoxOk ? 'ok' : 'ng';
+}
+
+async function recheckVoicevox() {
+  await checkVoicevox();
+  if (voicevoxOk) {
+    const msg = '接続できたのだ！ずんだもんの声でしゃべれるのだ！';
+    addMessage('assistant', msg);
+    speak(msg);
+  }
 }
 
 async function speak(text) {
